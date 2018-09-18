@@ -1,0 +1,39 @@
+version: '3'
+
+services:
+  # to serve application content
+  web-proxy:
+    build:
+      context: .
+      dockerfile: web-proxy.dockerfile
+    ports:
+      - 8087:80
+    working_dir: /var/www
+    volumes:
+      - ..:/var/www
+      - ./site.conf:/etc/nginx/conf.d/site.conf
+    links:
+      - app-cgi
+
+  # to run as cgi server, code must be placed in here
+  app-cgi:
+    build:
+      context: .
+      dockerfile: app.dockerfile
+    working_dir: /var/www
+    volumes:
+      - ..:/var/www
+    environment:
+      - "ENV_DB_HOST=db"
+      - "ENV_DB_PORT=3306"
+      - "ENV_DB_DATABASE=ecm_db"
+      - "ENV_ENV_DB_USERNAME=root"
+      - "ENV_DB_PASSWORD=root123"
+
+  db:
+    image: mysql:5.7
+    environment:
+      - "MYSQL_ROOT_PASSWORD=root123"
+      - "MYSQL_DATABASE=ecm_db"
+    ports:
+      - 33061:3306
